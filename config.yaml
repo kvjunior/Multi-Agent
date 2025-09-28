@@ -1,0 +1,320 @@
+# config.yaml - Configuration for Multi-Agent Sustainable Tourism Recommendation System
+# Academic implementation for Information Technology & Tourism journal submission
+
+# General Experiment Settings
+experiment:
+  name: "sustainable_tourism_marl_v1"
+  seed: 42
+  description: "Multi-agent reinforcement learning for sustainable tourism itinerary planning"
+  version: "1.0.0"
+  author: "[Your Name]"
+  institution: "[Your Institution]"
+  
+# Hardware and Distributed Training Configuration
+hardware:
+  device: "cuda"
+  num_gpus: 4
+  gpu_ids: [0, 1, 2, 3]
+  mixed_precision: true
+  distributed: true
+  num_workers: 32  # CPU workers for data loading
+  pin_memory: true
+  
+# Data Configuration
+data:
+  data_path: "./data"
+  cache_dir: "./data/.cache"
+  
+  # Data splits
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  
+  # Data processing
+  chunk_size: 100000  # For processing large datasets
+  max_trajectory_length: 20
+  min_trajectory_length: 3
+  
+  # POI dataset specifics (Verona)
+  num_pois: 18
+  poi_categories: ["cultural", "nature", "entertainment", "dining", "shopping"]
+  
+  # Temporal settings
+  operating_hours:
+    start: 9  # 9 AM
+    end: 18   # 6 PM
+  time_slots_per_day: 36  # 15-minute intervals
+  
+# Environment Configuration
+environment:
+  type: "MultiAgentTourismEnv"
+  num_agents: 10
+  max_steps: 100
+  max_episode_length: 480  # 8 hours in minutes
+  
+  # Capacity and crowding
+  capacity_factor: 1.0
+  crowding_penalty_weight: 0.3
+  queue_time_multiplier: 1.0
+  
+  # Sustainability settings
+  sustainability_weight: 0.2
+  diversity_bonus: 0.1
+  
+  # Context settings
+  weather_impact: true
+  seasonal_variation: true
+  holiday_factor: 1.5
+  
+  # Parallel execution
+  use_parallel: true
+  parallel_workers: 4
+  
+# Model Architecture Configuration
+model:
+  type: "transformer"  # Options: transformer, graph, hierarchical, uncertainty
+  
+  # Common parameters
+  hidden_dim: 256
+  embedding_dim: 128
+  dropout: 0.1
+  activation: "gelu"
+  
+  # Transformer specific
+  transformer:
+    num_layers: 6
+    num_heads: 8
+    feedforward_dim: 1024
+    max_sequence_length: 20
+    positional_encoding: true
+    
+  # Graph neural network specific
+  graph:
+    num_layers: 4
+    num_heads: 8
+    edge_dim: 32
+    aggregation: "mean"
+    
+  # Hierarchical policy specific
+  hierarchical:
+    num_zones: 5
+    max_days: 7
+    manager_layers: 3
+    worker_layers: 3
+    subgoal_embedding_dim: 64
+    
+  # Uncertainty quantification specific
+  uncertainty:
+    num_ensemble: 5
+    prior_std: 1.0
+    num_mc_samples: 10
+    
+# Training Algorithm Configuration
+algorithm:
+  type: "maddpg"  # Options: maddpg, ppo, hierarchical, constrained
+  
+  # Common training parameters
+  batch_size: 256
+  learning_rate: 1e-4
+  gamma: 0.99
+  tau: 0.001  # Soft update parameter
+  gradient_clip: 10.0
+  gradient_accumulation_steps: 1
+  
+  # Replay buffer
+  buffer_size: 1000000
+  prioritized_replay: true
+  priority_alpha: 0.6
+  priority_beta: 0.4
+  
+  # Training schedule
+  num_episodes: 10000
+  warmup_episodes: 100
+  update_interval: 2
+  soft_update_interval: 100
+  
+  # MADDPG specific
+  maddpg:
+    critic_learning_rate: 3e-4
+    num_agents: 10
+    shared_critic: false
+    
+  # PPO specific
+  ppo:
+    ppo_epochs: 10
+    ppo_clip_epsilon: 0.2
+    value_loss_coef: 0.5
+    entropy_coef: 0.01
+    gae_lambda: 0.95
+    max_grad_norm: 0.5
+    
+  # Hierarchical RL specific
+  hierarchical:
+    manager_update_freq: 10
+    worker_update_freq: 1
+    subgoal_horizon: 10
+    intrinsic_reward_weight: 0.1
+    
+  # Constrained optimization specific
+  constrained:
+    constraint_violation_penalty: 100.0
+    lagrange_multiplier_lr: 1e-3
+    constraint_tolerance: 1e-3
+    barrier_coefficient: 10.0
+    
+# Hyperparameter Optimization
+hyperopt:
+  enabled: true
+  engine: "optuna"  # Options: optuna, ray_tune
+  num_trials: 100
+  timeout_hours: 12
+  
+  # Search spaces
+  search_space:
+    learning_rate:
+      type: "loguniform"
+      low: 1e-5
+      high: 1e-2
+    batch_size:
+      type: "categorical"
+      choices: [64, 128, 256, 512]
+    hidden_dim:
+      type: "categorical"
+      choices: [128, 256, 512]
+    num_layers:
+      type: "int"
+      low: 2
+      high: 8
+    dropout:
+      type: "float"
+      low: 0.0
+      high: 0.3
+      step: 0.05
+      
+  # Pruning
+  pruner: "median"
+  n_startup_trials: 5
+  n_warmup_steps: 10
+  
+# Evaluation Configuration
+evaluation:
+  eval_interval: 50
+  eval_episodes: 100
+  
+  # Metrics to compute
+  metrics:
+    - "total_reward"
+    - "satisfaction_score"
+    - "sustainability_score"
+    - "gini_coefficient"
+    - "entropy"
+    - "coverage"
+    - "waiting_time"
+    - "time_utilization"
+    - "travel_efficiency"
+    - "fairness_index"
+    
+  # Baseline comparisons
+  baselines:
+    - "random"
+    - "greedy_popularity"
+    - "shortest_path"
+    - "load_balancing"
+    
+# Logging and Checkpointing
+logging:
+  log_level: "INFO"
+  log_interval: 10
+  log_dir: "./experiments/logs"
+  
+  # Experiment tracking
+  use_wandb: true
+  wandb_project: "sustainable-tourism-marl"
+  wandb_entity: "[Your WandB Entity]"
+  
+  use_mlflow: true
+  mlflow_tracking_uri: "file:./mlruns"
+  
+  use_tensorboard: true
+  tensorboard_dir: "./experiments/logs/tensorboard"
+  
+# Checkpointing
+checkpoint:
+  save_interval: 100
+  save_dir: "./experiments/checkpoints"
+  keep_last_n: 5
+  save_best_only: false
+  resume_from: null  # Path to checkpoint to resume from
+  
+# Early Stopping
+early_stopping:
+  enabled: true
+  patience: 20
+  min_delta: 0.001
+  monitor: "val_reward"
+  mode: "max"
+  
+# Visualization
+visualization:
+  enabled: true
+  save_dir: "./results/figures"
+  figure_format: ["pdf", "png"]
+  dpi: 300
+  style: "seaborn"
+  
+  # Specific visualizations
+  plot_trajectories: true
+  plot_metrics: true
+  plot_learning_curves: true
+  plot_heatmaps: true
+  animation_enabled: false
+  
+# Constraints Configuration (for Verona case study)
+constraints:
+  # POI capacity constraints (max visitors per time slot)
+  poi_capacities:
+    42: 25   # Archaeological Museum
+    49: 125  # Arena Amphitheatre
+    52: 50   # The Cathedral
+    54: 37   # Church of St. Anastasia
+    58: 20   # Palazzo della Ragione
+    59: 15   # Lamberti Tower
+    61: 75   # Juliet's House
+    62: 25   # Church of St. Fermo
+    63: 30   # Church of St. Zeno
+    71: 62   # Castelvecchio Museum
+    75: 12   # Giusti's Garden
+    76: 20   # The Maffeiano Museum
+    201: 15  # Natural History Museum
+    202: 25  # Frescoes Museum
+    300: 10  # Miniscalchi Museum
+    301: 37  # Palazzo Maffei
+    302: 17  # National Museum
+    303: 50  # Eataly Verona
+    
+  # Sustainability constraints
+  max_daily_visitors_per_poi: 500
+  min_poi_utilization: 0.1
+  max_poi_utilization: 0.9
+  
+# System Requirements
+system:
+  min_memory_gb: 32
+  min_gpu_memory_gb: 20
+  python_version: "3.8+"
+  cuda_version: "11.3+"
+  
+# Reproducibility
+reproducibility:
+  deterministic: true
+  benchmark_mode: false
+  seed_everything: true
+  
+# Debug Settings
+debug:
+  enabled: false
+  verbose: false
+  profile: false
+  check_gradients: false
+  log_memory_usage: false
+  save_intermediate_results: false
